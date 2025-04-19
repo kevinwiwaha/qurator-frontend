@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Timer, AlertTriangle, Plus, Filter, Clock, Users, ChevronRight } from "lucide-react"
+import { Timer, AlertTriangle, Plus, Clock, Users, ChevronRight, Search } from "lucide-react"
 import TimingEntryDialog from "@/components/timing/timing-entry-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -265,21 +265,13 @@ export function TimingConsole() {
 
   return (
     <div className="space-y-6 relative pb-20">
-      <div className="flex flex-col md:flex-row justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Timing Console</h2>
-          <p className="text-muted-foreground">Record and manage timing data for racers</p>
-        </div>
-      </div>
-
       {/* Track selection and filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Track</label>
+      <Card className="mb-4 shadow-sm">
+        <CardContent className="p-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
               <Select value={selectedTrack} onValueChange={setSelectedTrack}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="h-9 text-sm w-[140px]">
                   <SelectValue placeholder="Select track" />
                 </SelectTrigger>
                 <SelectContent>
@@ -292,10 +284,9 @@ export function TimingConsole() {
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Category</label>
+            <div className="flex items-center gap-2">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="h-9 text-sm w-[140px]">
                   <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -308,17 +299,14 @@ export function TimingConsole() {
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Search</label>
-              <div className="relative">
-                <Input
-                  placeholder="Search by name, team, or number"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pr-10"
-                />
-                <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              </div>
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Input
+                placeholder="Search by name, team, or number"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 h-9 text-sm w-full"
+              />
             </div>
           </div>
         </CardContent>

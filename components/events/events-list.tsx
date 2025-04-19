@@ -16,7 +16,26 @@ import { Card } from "@/components/ui/card"
 import { ChevronUp, ChevronDown, Calendar, MapPin, Users, Plus } from "lucide-react"
 import { EventDetailSheet } from "@/components/events/event-detail-sheet"
 
-// Event data type
+// Track type
+export type Track = {
+  id: string
+  name: string
+  distance: string
+  type: "Road" | "Mountain" | "Trail" | "Mixed"
+  difficulty: "Easy" | "Moderate" | "Hard" | "Expert"
+}
+
+// Racer type (simplified version of the full Racer type)
+export type EventRacer = {
+  id: number
+  name: string
+  number: number
+  team: string
+  category: string
+  coDriver?: string
+}
+
+// Event data type with racers and tracks
 export type Event = {
   id: number
   name: string
@@ -30,9 +49,107 @@ export type Event = {
   contactPhone?: string
   website?: string
   notes?: string
+  racers: EventRacer[]
+  tracks: Track[]
 }
 
-// Sample event data
+// Sample tracks
+const sampleTracks: Track[] = [
+  {
+    id: "track-1",
+    name: "Mountain Loop",
+    distance: "12.5 km",
+    type: "Mountain",
+    difficulty: "Hard",
+  },
+  {
+    id: "track-2",
+    name: "Forest Trail",
+    distance: "8.2 km",
+    type: "Trail",
+    difficulty: "Moderate",
+  },
+  {
+    id: "track-3",
+    name: "City Circuit",
+    distance: "5.0 km",
+    type: "Road",
+    difficulty: "Easy",
+  },
+  {
+    id: "track-4",
+    name: "Extreme Ridge",
+    distance: "15.3 km",
+    type: "Mixed",
+    difficulty: "Expert",
+  },
+]
+
+// Sample racers
+const sampleRacers: EventRacer[] = [
+  {
+    id: 1,
+    name: "John Smith",
+    number: 42,
+    team: "Red Racers",
+    category: "Pro",
+    coDriver: "Michael Roberts",
+  },
+  {
+    id: 2,
+    name: "Emma Johnson",
+    number: 17,
+    team: "Blue Speedsters",
+    category: "Pro",
+    coDriver: "Sarah Williams",
+  },
+  {
+    id: 3,
+    name: "Michael Brown",
+    number: 33,
+    team: "Green Machine",
+    category: "Pro",
+  },
+  {
+    id: 4,
+    name: "Sarah Davis",
+    number: 8,
+    team: "Yellow Lightning",
+    category: "Pro",
+    coDriver: "James Wilson",
+  },
+  {
+    id: 5,
+    name: "David Wilson",
+    number: 21,
+    team: "Purple Power",
+    category: "Pro",
+  },
+  {
+    id: 6,
+    name: "Lisa Martinez",
+    number: 55,
+    team: "Orange Flames",
+    category: "Amateur",
+  },
+  {
+    id: 7,
+    name: "Robert Taylor",
+    number: 12,
+    team: "Silver Streaks",
+    category: "Amateur",
+    coDriver: "Thomas Laurent",
+  },
+  {
+    id: 8,
+    name: "Jennifer Anderson",
+    number: 29,
+    team: "Black Bolts",
+    category: "Amateur",
+  },
+]
+
+// Sample event data with racers and tracks
 const initialEvents: Event[] = [
   {
     id: 1,
@@ -46,6 +163,8 @@ const initialEvents: Event[] = [
     contactEmail: "info@mountainchallenge.com",
     contactPhone: "+1 555-123-4567",
     website: "www.mountainchallenge.com",
+    racers: [sampleRacers[0], sampleRacers[1], sampleRacers[2]],
+    tracks: [sampleTracks[0], sampleTracks[1]],
   },
   {
     id: 2,
@@ -57,6 +176,8 @@ const initialEvents: Event[] = [
     description: "Fast-paced urban race through iconic city landmarks.",
     organizer: "Urban Racing League",
     contactEmail: "contact@citysprint.com",
+    racers: [sampleRacers[3], sampleRacers[4]],
+    tracks: [sampleTracks[2]],
   },
   {
     id: 3,
@@ -69,6 +190,8 @@ const initialEvents: Event[] = [
     organizer: "Extreme Sports Inc.",
     contactEmail: "info@desertrace.com",
     website: "www.desertendurance.com",
+    racers: [sampleRacers[5], sampleRacers[6], sampleRacers[7]],
+    tracks: [sampleTracks[3]],
   },
   {
     id: 4,
@@ -80,6 +203,8 @@ const initialEvents: Event[] = [
     description: "Scenic marathon along the beautiful Pacific coastline.",
     organizer: "Coastal Running Club",
     contactEmail: "run@coastalmarathon.com",
+    racers: [],
+    tracks: [],
   },
   {
     id: 5,
@@ -91,6 +216,8 @@ const initialEvents: Event[] = [
     description: "Navigate through ancient forest trails in this technical race.",
     organizer: "Trail Runners Association",
     contactEmail: "info@foresttrail.com",
+    racers: [],
+    tracks: [],
   },
   {
     id: 6,
@@ -102,6 +229,8 @@ const initialEvents: Event[] = [
     description: "Race through snow-covered terrain in this winter challenge.",
     organizer: "Winter Sports Federation",
     contactEmail: "contact@winterrace.com",
+    racers: [],
+    tracks: [],
   },
 ]
 
@@ -164,6 +293,8 @@ export function EventsList() {
       location: "",
       status: "Upcoming",
       participants: 0,
+      racers: [],
+      tracks: [],
     }
 
     setEvents([...events, newEvent])
@@ -245,6 +376,7 @@ export function EventsList() {
                     Participants {renderSortIcon("participants")}
                   </Button>
                 </TableHead>
+                <TableHead className="py-4">Tracks</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -275,7 +407,20 @@ export function EventsList() {
                   <TableCell className="py-4">
                     <div className="flex items-center">
                       <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {event.participants}
+                      {event.racers.length} / {event.participants}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <div className="flex flex-wrap gap-1">
+                      {event.tracks.length > 0 ? (
+                        event.tracks.map((track) => (
+                          <Badge key={track.id} variant="outline" className="px-2 py-0.5 text-xs">
+                            {track.name}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No tracks</span>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -328,7 +473,13 @@ export function EventsList() {
         </div>
       </Card>
 
-      <EventDetailSheet event={selectedEvent} onClose={() => setSelectedEvent(null)} onUpdate={handleEventUpdate} />
+      <EventDetailSheet
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        onUpdate={handleEventUpdate}
+        availableRacers={sampleRacers}
+        availableTracks={sampleTracks}
+      />
     </>
   )
 }

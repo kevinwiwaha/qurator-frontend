@@ -3,15 +3,16 @@
 import type React from "react"
 
 import { useState } from "react"
-import { ChevronLeft, Trophy, Users, Calendar, Settings, Menu, X, Clock, Flag, BarChart } from "lucide-react"
+import { ChevronLeft, Trophy, Users, Settings, Menu, X, Clock, Flag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useMobile } from "@/hooks/use-mobile"
 import Link from "next/link"
 
+// Update the AppShellProps interface to remove the schedule and statistics options
 interface AppShellProps {
   children: React.ReactNode
-  activePage?: "leaderboard" | "racers" | "events" | "schedule" | "timing" | "statistics" | "settings"
+  activePage?: "leaderboard" | "racers" | "events" | "timing" | "settings"
 }
 
 export function AppShell({ children, activePage = "leaderboard" }: AppShellProps) {
@@ -22,6 +23,7 @@ export function AppShell({ children, activePage = "leaderboard" }: AppShellProps
     setSidebarOpen(!sidebarOpen)
   }
 
+  // Update the getPageTitle function to remove the schedule and statistics cases
   const getPageTitle = () => {
     switch (activePage) {
       case "leaderboard":
@@ -30,12 +32,8 @@ export function AppShell({ children, activePage = "leaderboard" }: AppShellProps
         return "Racers"
       case "events":
         return "Events"
-      case "schedule":
-        return "Schedule"
       case "timing":
         return "Timing"
-      case "statistics":
-        return "Statistics"
       case "settings":
         return "Settings"
       default:
@@ -67,6 +65,7 @@ export function AppShell({ children, activePage = "leaderboard" }: AppShellProps
               <div className="mt-2 font-semibold text-lg">Race Manager</div>
             </div>
 
+            {/* Remove the schedule and statistics links from the mobile sidebar */}
             <nav className="flex-1 p-4 space-y-2">
               <Link href="/">
                 <SidebarItem icon={Trophy} label="Leaderboard" active={activePage === "leaderboard"} />
@@ -77,14 +76,8 @@ export function AppShell({ children, activePage = "leaderboard" }: AppShellProps
               <Link href="/events">
                 <SidebarItem icon={Flag} label="Events" active={activePage === "events"} />
               </Link>
-              <Link href="/schedule">
-                <SidebarItem icon={Calendar} label="Schedule" active={activePage === "schedule"} />
-              </Link>
               <Link href="/timing">
                 <SidebarItem icon={Clock} label="Timing" active={activePage === "timing"} />
-              </Link>
-              <Link href="/statistics">
-                <SidebarItem icon={BarChart} label="Statistics" active={activePage === "statistics"} />
               </Link>
             </nav>
 
@@ -108,6 +101,7 @@ export function AppShell({ children, activePage = "leaderboard" }: AppShellProps
               <div className="mt-2 text-xs font-medium text-center">Race Manager</div>
             </div>
 
+            {/* Remove the schedule and statistics links from the desktop sidebar */}
             <nav className="flex-1 p-4 flex flex-col items-center space-y-8">
               <Link href="/" className="w-full flex flex-col items-center">
                 <SidebarItemVertical icon={Trophy} label="Leaderboard" active={activePage === "leaderboard"} />
@@ -118,14 +112,8 @@ export function AppShell({ children, activePage = "leaderboard" }: AppShellProps
               <Link href="/events" className="w-full flex flex-col items-center">
                 <SidebarItemVertical icon={Flag} label="Events" active={activePage === "events"} />
               </Link>
-              <Link href="/schedule" className="w-full flex flex-col items-center">
-                <SidebarItemVertical icon={Calendar} label="Schedule" active={activePage === "schedule"} />
-              </Link>
               <Link href="/timing" className="w-full flex flex-col items-center">
                 <SidebarItemVertical icon={Clock} label="Timing" active={activePage === "timing"} />
-              </Link>
-              <Link href="/statistics" className="w-full flex flex-col items-center">
-                <SidebarItemVertical icon={BarChart} label="Stats" active={activePage === "statistics"} />
               </Link>
             </nav>
 

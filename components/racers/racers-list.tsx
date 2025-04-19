@@ -16,6 +16,8 @@ import { Card } from "@/components/ui/card"
 import { ChevronUp, ChevronDown, Trophy, Plus } from "lucide-react"
 import { RacerDetailSheet } from "@/components/racers/racer-detail-sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { RacerAddDialog } from "@/components/racers/racer-add-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 // Update the Racer data type to include coDriver field
 export type Racer = {
@@ -168,6 +170,8 @@ export function RacersList() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const [selectedRacer, setSelectedRacer] = useState<Racer | null>(null)
   const [racers, setRacers] = useState<Racer[]>(initialRacers)
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const { toast } = useToast()
 
   const itemsPerPage = 5
   const totalPages = Math.ceil(racers.length / itemsPerPage)
@@ -208,30 +212,25 @@ export function RacersList() {
     setRacers(updatedRacers)
   }
 
-  const handleAddRacer = () => {
-    // Create a new racer with default values
-    const newRacer: Racer = {
-      id: Math.max(...racers.map((r) => r.id)) + 1,
-      name: "New Racer",
-      number: Math.max(...racers.map((r) => r.number)) + 1,
-      team: "",
-      category: "Amateur",
-      age: 25,
-      gender: "Male",
-      country: "",
-      totalRaces: 0,
-      wins: 0,
-    }
+  const handleAddRacer = (newRacer: Racer) => {
+    // Generate a new ID for the racer
+    const newId = Math.max(...racers.map((r) => r.id)) + 1
+    const racerWithId = { ...newRacer, id: newId }
 
-    setRacers([...racers, newRacer])
-    setSelectedRacer(newRacer)
+    // Add to racers list
+    setRacers([...racers, racerWithId])
+
+    toast({
+      title: "Racer added",
+      description: `${newRacer.name} has been added successfully.`,
+    })
   }
 
   return (
     <>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Racer Profiles</h2>
-        <Button onClick={handleAddRacer} className="h-10">
+        <Button onClick={() => setAddDialogOpen(true)} className="h-10">
           <Plus className="mr-2 h-4 w-4" />
           Add Racer
         </Button>
@@ -327,7 +326,7 @@ export function RacersList() {
                 >
                   <TableCell className="py-4">
                     <Avatar>
-                      <AvatarImage src={racer.avatar} />
+                      <AvatarImage src={racer.avatar || "/placeholder.svg"} />
                       <AvatarFallback>
                         {racer.name
                           .split(" ")
@@ -405,6 +404,8 @@ export function RacersList() {
       </Card>
 
       <RacerDetailSheet racer={selectedRacer} onClose={() => setSelectedRacer(null)} onUpdate={handleRacerUpdate} />
+
+      <RacerAddDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} onAdd={handleAddRacer} />
     </>
   )
 }
