@@ -12,9 +12,8 @@ import {
 } from "@/components/ui/pagination"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { ChevronUp, ChevronDown, Calendar, MapPin, Users, Plus } from "lucide-react"
-import { EventDetailSheet } from "@/components/events/event-detail-sheet"
+import { Calendar, MapPin, Users, Plus } from "lucide-react"
+import { EventDetailDialog } from "@/components/events/event-detail-dialog"
 
 // Track type
 export type Track = {
@@ -242,6 +241,7 @@ export function EventsList() {
   const [sortField, setSortField] = useState<SortField>("date")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const [events, setEvents] = useState<Event[]>(initialEvents)
 
   const itemsPerPage = 5
@@ -269,13 +269,9 @@ export function EventsList() {
 
   const paginatedEvents = sortedEvents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-  const renderSortIcon = (field: SortField) => {
-    if (sortField !== field) return null
-    return sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
-  }
-
   const handleRowClick = (event: Event) => {
     setSelectedEvent(event)
+    setDialogOpen(true)
   }
 
   const handleEventUpdate = (updatedEvent: Event) => {
@@ -299,6 +295,7 @@ export function EventsList() {
 
     setEvents([...events, newEvent])
     setSelectedEvent(newEvent)
+    setDialogOpen(true)
   }
 
   const getStatusBadgeVariant = (status: Event["status"]) => {
@@ -318,95 +315,47 @@ export function EventsList() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Race Events</h2>
-        <Button onClick={handleAddEvent} className="h-10">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Event
-        </Button>
-      </div>
-
-      <Card className="overflow-hidden shadow-md">
+      <div className="bg-white rounded-lg shadow-sm border">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("name")}
-                  >
-                    Event Name {renderSortIcon("name")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("date")}
-                  >
-                    Date {renderSortIcon("date")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("location")}
-                  >
-                    Location {renderSortIcon("location")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("status")}
-                  >
-                    Status {renderSortIcon("status")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("participants")}
-                  >
-                    Participants {renderSortIcon("participants")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">Tracks</TableHead>
+              <TableRow className="bg-muted">
+                <TableHead className="py-4 text-base">Event Name</TableHead>
+                <TableHead className="py-4 text-base">Date</TableHead>
+                <TableHead className="py-4 text-base">Location</TableHead>
+                <TableHead className="py-4 text-base">Status</TableHead>
+                <TableHead className="py-4 text-base">Participants</TableHead>
+                <TableHead className="py-4 text-base">Tracks</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedEvents.map((event) => (
                 <TableRow
                   key={event.id}
-                  className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="hover:bg-muted/50 cursor-pointer transition-colors"
                   onClick={() => handleRowClick(event)}
                 >
-                  <TableCell className="font-medium py-4">{event.name}</TableCell>
-                  <TableCell className="py-4">
+                  <TableCell className="font-medium py-4 text-base">{event.name}</TableCell>
+                  <TableCell className="py-4 text-base">
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Calendar className="h-5 w-5 mr-2 text-muted-foreground" />
                       {new Date(event.date).toLocaleDateString()}
                     </div>
                   </TableCell>
-                  <TableCell className="py-4">
+                  <TableCell className="py-4 text-base">
                     <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <MapPin className="h-5 w-5 mr-2 text-muted-foreground" />
                       {event.location}
                     </div>
                   </TableCell>
                   <TableCell className="py-4">
-                    <Badge variant={getStatusBadgeVariant(event.status)} className="px-3 py-1 text-sm">
+                    <Badge variant={getStatusBadgeVariant(event.status)} className="px-3 py-1 text-base">
                       {event.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="py-4">
+                  <TableCell className="py-4 text-base">
                     <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Users className="h-5 w-5 mr-2 text-muted-foreground" />
                       {event.racers.length} / {event.participants}
                     </div>
                   </TableCell>
@@ -414,7 +363,7 @@ export function EventsList() {
                     <div className="flex flex-wrap gap-1">
                       {event.tracks.length > 0 ? (
                         event.tracks.map((track) => (
-                          <Badge key={track.id} variant="outline" className="px-2 py-0.5 text-xs">
+                          <Badge key={track.id} variant="outline" className="px-2 py-1 text-sm">
                             {track.name}
                           </Badge>
                         ))
@@ -471,11 +420,17 @@ export function EventsList() {
             </PaginationContent>
           </Pagination>
         </div>
-      </Card>
+      </div>
 
-      <EventDetailSheet
+      {/* Floating Action Button */}
+      <Button onClick={handleAddEvent} className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg" size="icon">
+        <Plus className="h-8 w-8" />
+      </Button>
+
+      <EventDetailDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
         event={selectedEvent}
-        onClose={() => setSelectedEvent(null)}
         onUpdate={handleEventUpdate}
         availableRacers={sampleRacers}
         availableTracks={sampleTracks}

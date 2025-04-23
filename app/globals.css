@@ -4,79 +4,79 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --background-subtle: 210 20% 98%;
-    --foreground: 240 10% 3.9%;
+    --background: 0 0% 98%;
+    --background-subtle: 0 0% 95%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 220 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 100% 95%;
+    --accent-foreground: 210 100% 50%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 80% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 142.1 76.2% 36.3%;
-    --success-foreground: 355.7 100% 97.3%;
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 48 96% 89%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 210 100% 50%;
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --background-subtle: 240 10% 5%;
+    --background: 0 0% 10%;
+    --background-subtle: 0 0% 15%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 3.9%;
+    --card: 0 0% 15%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 3.9%;
+    --popover: 0 0% 15%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 210 100% 20%;
+    --accent-foreground: 210 100% 50%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 80% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 142.1 70.6% 45.3%;
-    --success-foreground: 144.9 80.4% 10%;
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 48 96% 89%;
-    --warning-foreground: 38 92% 50%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 210 100% 50%;
   }
 }
 
@@ -86,5 +86,60 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Tablet-friendly styles */
+@layer components {
+  .tablet-container {
+    @apply max-w-full px-4 py-4;
+  }
+
+  .tablet-card {
+    @apply rounded-lg border border-border bg-card p-4 shadow-sm;
+  }
+
+  .tablet-button {
+    @apply h-12 min-w-[100px] rounded-lg text-base font-medium;
+  }
+
+  .tablet-input {
+    @apply h-12 rounded-lg text-base;
+  }
+
+  .tablet-select {
+    @apply h-12 rounded-lg text-base;
+  }
+
+  .tablet-header {
+    @apply text-xl font-medium;
+  }
+
+  .tablet-subheader {
+    @apply text-base font-medium;
+  }
+
+  .tablet-text {
+    @apply text-base;
+  }
+
+  .tablet-badge {
+    @apply rounded-md px-2 py-1 text-sm font-medium;
+  }
+
+  .tablet-table {
+    @apply w-full border-collapse;
+  }
+
+  .tablet-table th {
+    @apply p-3 text-left text-base font-medium;
+  }
+
+  .tablet-table td {
+    @apply p-3 text-base;
+  }
+
+  .tablet-table tr {
+    @apply border-b border-border;
   }
 }

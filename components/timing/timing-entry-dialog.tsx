@@ -1,14 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -17,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Plus, Trash2, Timer, AlertTriangle, Users } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 
@@ -222,85 +215,37 @@ export default function TimingEntryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md md:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{mode === "add" ? "Add Time Record" : "Edit Time Record"}</DialogTitle>
-          <DialogDescription>
-            {mode === "add" ? "Add a new time record for a racer" : "Edit timing information for this racer"}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="p-0 max-w-md md:max-w-lg">
+        <div className="flex flex-col max-h-[85vh]">
+          {/* Header */}
+          <div className="p-6 border-b">
+            <h2 className="text-lg font-semibold">{mode === "add" ? "Add Time Record" : "Edit Time Record"}</h2>
+            <p className="text-sm text-muted-foreground">
+              {mode === "add" ? "Add a new time record for a racer" : "Edit timing information for this racer"}
+            </p>
+          </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {mode === "edit" ? (
-              <Card className="bg-muted/20">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 text-primary font-bold text-xl">
-                      {racer?.number}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold">{racer?.name}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="outline" className="px-2 py-0.5">
-                          {racer?.category}
-                        </Badge>
-                        {racer?.team && (
-                          <span className="flex items-center">
-                            <Users className="h-3 w-3 mr-1" />
-                            {racer.team}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="racerId"
-                  render={({ field }) => (
-                    <FormItem className="mb-4">
-                      <FormLabel>Select Racer</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose a racer" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {racers.map((r) => (
-                            <SelectItem key={r.id} value={r.id.toString()}>
-                              #{r.number} - {r.name} ({r.category})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>Select a racer to record their time</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {selectedRacerId && (
-                  <Card className="bg-muted/20">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
+              {/* Scrollable Content */}
+              <div className="p-6 overflow-y-auto" style={{ maxHeight: "calc(85vh - 140px)" }}>
+                {mode === "edit" ? (
+                  <Card className="bg-muted/20 mb-6">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 text-primary font-bold text-xl">
-                          {form.getValues("number")}
+                          {racer?.number}
                         </div>
                         <div>
-                          <h3 className="text-lg font-bold">{form.getValues("name")}</h3>
+                          <h3 className="text-lg font-bold">{racer?.name}</h3>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Badge variant="outline" className="px-2 py-0.5">
-                              {form.getValues("category")}
+                              {racer?.category}
                             </Badge>
-                            {form.getValues("team") && (
+                            {racer?.team && (
                               <span className="flex items-center">
                                 <Users className="h-3 w-3 mr-1" />
-                                {form.getValues("team")}
+                                {racer.team}
                               </span>
                             )}
                           </div>
@@ -308,201 +253,260 @@ export default function TimingEntryDialog({
                       </div>
                     </CardContent>
                   </Card>
-                )}
-              </div>
-            )}
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Not Started">Not Started</SelectItem>
-                      <SelectItem value="Finished">Finished</SelectItem>
-                      <SelectItem value="DNF">Did Not Finish</SelectItem>
-                      <SelectItem value="DSQ">Disqualified</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {watchStatus === "Finished" && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Timer className="h-5 w-5 text-muted-foreground" />
-                  <div className="text-base font-medium">Elapsed Time</div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="hours"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-col items-center">
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="number"
-                              min="0"
-                              max="99"
-                              className="text-center font-mono text-lg"
-                            />
-                          </FormControl>
-                          <span className="text-xs text-muted-foreground mt-1">Hours</span>
+                ) : (
+                  <div className="space-y-4 mb-6">
+                    <FormField
+                      control={form.control}
+                      name="racerId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Select Racer</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose a racer" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {racers.map((r) => (
+                                <SelectItem key={r.id} value={r.id.toString()}>
+                                  #{r.number} - {r.name} ({r.category})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>Select a racer to record their time</FormDescription>
                           <FormMessage />
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="minutes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-col items-center">
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="number"
-                              min="0"
-                              max="59"
-                              className="text-center font-mono text-lg"
-                            />
-                          </FormControl>
-                          <span className="text-xs text-muted-foreground mt-1">Minutes</span>
-                          <FormMessage />
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="seconds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-col items-center">
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="number"
-                              min="0"
-                              max="59"
-                              className="text-center font-mono text-lg"
-                            />
-                          </FormControl>
-                          <span className="text-xs text-muted-foreground mt-1">Seconds</span>
-                          <FormMessage />
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Enter the raw time without penalties. Penalties will be added automatically.
-                </div>
-              </div>
-            )}
+                        </FormItem>
+                      )}
+                    />
 
-            <Separator />
-
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-base font-medium">Penalties</h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addPenalty}
-                  disabled={watchStatus !== "Finished"}
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Add Penalty
-                </Button>
-              </div>
-
-              {watchStatus !== "Finished" && (
-                <div className="text-center py-4 text-muted-foreground bg-muted/50 rounded-lg border border-dashed">
-                  <AlertTriangle className="h-4 w-4 mx-auto mb-2" />
-                  Penalties can only be added for finished racers
-                </div>
-              )}
-
-              {watchStatus === "Finished" && form.watch("penalties").length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground bg-muted/50 rounded-lg border border-dashed">
-                  No penalties recorded
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {watchStatus === "Finished" &&
-                    form.watch("penalties").map((penalty, index) => (
-                      <Card key={penalty.id} className="border border-warning/30 bg-warning/10">
-                        <CardHeader className="py-2 px-3">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-sm">Penalty</CardTitle>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removePenalty(penalty.id)}
-                              className="h-7 w-7 p-0 text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                    {selectedRacerId && (
+                      <Card className="bg-muted/20">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 text-primary font-bold text-xl">
+                              {form.getValues("number")}
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold">{form.getValues("name")}</h3>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Badge variant="outline" className="px-2 py-0.5">
+                                  {form.getValues("category")}
+                                </Badge>
+                                {form.getValues("team") && (
+                                  <span className="flex items-center">
+                                    <Users className="h-3 w-3 mr-1" />
+                                    {form.getValues("team")}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </CardHeader>
-                        <CardContent className="py-2 px-3 grid grid-cols-2 gap-3">
-                          <FormField
-                            control={form.control}
-                            name={`penalties.${index}.seconds`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Seconds</FormLabel>
-                                <FormControl>
-                                  <Input {...field} type="number" className="h-8 text-sm" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name={`penalties.${index}.description`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Reason</FormLabel>
-                                <FormControl>
-                                  <Input {...field} className="h-8 text-sm" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
                         </CardContent>
                       </Card>
-                    ))}
-                </div>
-              )}
-            </div>
+                    )}
+                  </div>
+                )}
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">{mode === "add" ? "Add Time Record" : "Update Time"}</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem className="mb-6">
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Not Started">Not Started</SelectItem>
+                          <SelectItem value="Finished">Finished</SelectItem>
+                          <SelectItem value="DNF">Did Not Finish</SelectItem>
+                          <SelectItem value="DSQ">Disqualified</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {watchStatus === "Finished" && (
+                  <div className="space-y-4 mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Timer className="h-5 w-5 text-muted-foreground" />
+                      <div className="text-base font-medium">Elapsed Time</div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="hours"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex flex-col items-center">
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  min="0"
+                                  max="99"
+                                  className="text-center font-mono text-lg"
+                                />
+                              </FormControl>
+                              <span className="text-xs text-muted-foreground mt-1">Hours</span>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="minutes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex flex-col items-center">
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  min="0"
+                                  max="59"
+                                  className="text-center font-mono text-lg"
+                                />
+                              </FormControl>
+                              <span className="text-xs text-muted-foreground mt-1">Minutes</span>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="seconds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex flex-col items-center">
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  min="0"
+                                  max="59"
+                                  className="text-center font-mono text-lg"
+                                />
+                              </FormControl>
+                              <span className="text-xs text-muted-foreground mt-1">Seconds</span>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Enter the raw time without penalties. Penalties will be added automatically.
+                    </div>
+                  </div>
+                )}
+
+                <Separator className="my-6" />
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-base font-medium">Penalties</h3>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addPenalty}
+                      disabled={watchStatus !== "Finished"}
+                      className="h-7 text-xs px-2"
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" /> Add Penalty
+                    </Button>
+                  </div>
+
+                  {watchStatus !== "Finished" && (
+                    <div className="text-center py-4 text-muted-foreground bg-muted/50 rounded-lg border border-dashed">
+                      <AlertTriangle className="h-4 w-4 mx-auto mb-2" />
+                      Penalties can only be added for finished racers
+                    </div>
+                  )}
+
+                  {watchStatus === "Finished" && form.watch("penalties").length === 0 ? (
+                    <div className="text-center py-4 text-muted-foreground bg-muted/50 rounded-lg border border-dashed">
+                      No penalties recorded
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {watchStatus === "Finished" &&
+                        form.watch("penalties").map((penalty, index) => (
+                          <Card key={penalty.id} className="border border-warning/30 bg-warning/10">
+                            <div className="p-2 flex items-center justify-between">
+                              <div className="flex items-center">
+                                <AlertTriangle className="h-3.5 w-3.5 text-warning mr-1.5" />
+                                <span className="text-xs font-medium">Penalty</span>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removePenalty(penalty.id)}
+                                className="h-6 w-6 p-0 text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                            <div className="px-2 pb-2 flex gap-2">
+                              <FormField
+                                control={form.control}
+                                name={`penalties.${index}.seconds`}
+                                render={({ field }) => (
+                                  <FormItem className="flex-shrink-0 w-20">
+                                    <FormLabel className="text-[10px] mb-0.5">Seconds</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} type="number" className="h-7 text-xs px-2" />
+                                    </FormControl>
+                                    <FormMessage className="text-[10px]" />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name={`penalties.${index}.description`}
+                                render={({ field }) => (
+                                  <FormItem className="flex-1">
+                                    <FormLabel className="text-[10px] mb-0.5">Reason</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} className="h-7 text-xs px-2" />
+                                    </FormControl>
+                                    <FormMessage className="text-[10px]" />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </Card>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Fixed Footer */}
+              <div className="p-4 border-t bg-background mt-auto">
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">{mode === "add" ? "Add Time Record" : "Update Time"}</Button>
+                </div>
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   )

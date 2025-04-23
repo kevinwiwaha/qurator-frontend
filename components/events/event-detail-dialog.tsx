@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
-import { Save, X, Calendar, MapPin, Users, Globe, Mail, Phone, User, Plus, Trash2, Route } from "lucide-react"
+import { X, Calendar, MapPin, Users, Globe, Mail, Phone, User, Plus, Trash2, Route } from "lucide-react"
 import type { Event, EventRacer, Track } from "@/components/events/events-list"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -19,18 +19,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-  Dialog,
-  DialogContent,
+  DialogContent as SelectionDialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Dialog as SelectionDialog,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 
-interface EventDetailSheetProps {
+interface EventDetailDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   event: Event | null
-  onClose: () => void
   onUpdate: (updatedEvent: Event) => void
   availableRacers: EventRacer[]
   availableTracks: Track[]
@@ -53,14 +54,14 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-export function EventDetailSheet({
+export function EventDetailDialog({
+  open,
+  onOpenChange,
   event,
-  onClose,
   onUpdate,
   availableRacers,
   availableTracks,
-}: EventDetailSheetProps) {
-  const [isOpen, setIsOpen] = useState(false)
+}: EventDetailDialogProps) {
   const [activeTab, setActiveTab] = useState("details")
   const [addRacerDialogOpen, setAddRacerDialogOpen] = useState(false)
   const [addTrackDialogOpen, setAddTrackDialogOpen] = useState(false)
@@ -90,7 +91,6 @@ export function EventDetailSheet({
   // Update form values when event changes
   useEffect(() => {
     if (event) {
-      setIsOpen(true)
       form.reset({
         name: event.name,
         date: event.date,
@@ -104,16 +104,8 @@ export function EventDetailSheet({
         website: event.website || "",
         notes: event.notes || "",
       })
-    } else {
-      setIsOpen(false)
     }
   }, [event, form])
-
-  const handleClose = () => {
-    setIsOpen(false)
-    // Small delay to allow animation to complete
-    setTimeout(onClose, 300)
-  }
 
   const onSubmit = (data: FormValues) => {
     if (!event) return
@@ -247,17 +239,20 @@ export function EventDetailSheet({
 
   return (
     <>
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent className="sm:max-w-md md:max-w-lg overflow-y-auto p-0" side="right">
-          <div className="flex flex-col h-full">
-            <div className="p-6 border-b sticky top-0 bg-white z-10">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="p-0 max-w-4xl">
+          <div className="flex flex-col max-h-[85vh]">
+            {/* Header */}
+            <div className="p-6 border-b">
               <div className="flex justify-between items-start mb-4">
-                <SheetTitle className="text-2xl">{event.name}</SheetTitle>
-                <Button variant="ghost" size="icon" onClick={handleClose} className="h-9 w-9">
+                <div>
+                  <h2 className="text-xl font-semibold">{event.name}</h2>
+                  <p className="text-sm text-muted-foreground">View and edit event information</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-9 w-9">
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-              <SheetDescription>View and edit event information</SheetDescription>
 
               <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
                 <TabsList className="grid grid-cols-3 w-full">
@@ -268,7 +263,8 @@ export function EventDetailSheet({
               </Tabs>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            {/* Content */}
+            <div className="overflow-y-auto" style={{ maxHeight: "calc(85vh - 180px)" }}>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsContent value="details" className="p-6 space-y-6">
                   <Form {...form}>
@@ -475,13 +471,6 @@ export function EventDetailSheet({
                           </FormItem>
                         )}
                       />
-
-                      <div className="flex justify-end">
-                        <Button type="submit" className="h-12 px-6 text-base">
-                          <Save className="mr-2 h-5 w-5" />
-                          Save Details
-                        </Button>
-                      </div>
                     </form>
                   </Form>
                 </TabsContent>
@@ -619,29 +608,24 @@ export function EventDetailSheet({
               </Tabs>
             </div>
 
-            <div className="p-6 border-t mt-auto sticky bottom-0 bg-white">
-              <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={handleClose} className="h-12 px-5 text-base">
-                  Close
+            {/* Footer */}
+            <div className="p-4 border-t bg-background mt-auto">
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  onClick={form.handleSubmit(onSubmit)}
-                  className="h-12 px-6 text-base"
-                  disabled={activeTab !== "details"}
-                >
-                  <Save className="mr-2 h-5 w-5" />
-                  Save Changes
+                <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={activeTab !== "details"}>
+                  {activeTab === "details" ? "Save Changes" : "Close"}
                 </Button>
               </div>
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* Add Racers Dialog */}
-      <Dialog open={addRacerDialogOpen} onOpenChange={setAddRacerDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+      <SelectionDialog open={addRacerDialogOpen} onOpenChange={setAddRacerDialogOpen}>
+        <SelectionDialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add Racers</DialogTitle>
             <DialogDescription>Select racers to add to this event.</DialogDescription>
@@ -701,12 +685,12 @@ export function EventDetailSheet({
               Add Selected ({selectedRacers.length})
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </SelectionDialogContent>
+      </SelectionDialog>
 
       {/* Add Tracks Dialog */}
-      <Dialog open={addTrackDialogOpen} onOpenChange={setAddTrackDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+      <SelectionDialog open={addTrackDialogOpen} onOpenChange={setAddTrackDialogOpen}>
+        <SelectionDialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add Tracks</DialogTitle>
             <DialogDescription>Select tracks to add to this event.</DialogDescription>
@@ -763,8 +747,8 @@ export function EventDetailSheet({
               Add Selected ({selectedTracks.length})
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </SelectionDialogContent>
+      </SelectionDialog>
     </>
   )
 }

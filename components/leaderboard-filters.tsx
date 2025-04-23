@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Search, Filter, RefreshCw } from "lucide-react"
+import { Search } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 
 export function LeaderboardFilters() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -53,17 +52,6 @@ export function LeaderboardFilters() {
                 <SelectItem value="track-4">Extreme Ridge</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="flex items-center gap-2 ml-auto">
-            <Button variant="outline" size="sm" className="h-9">
-              <RefreshCw className="mr-1 h-3.5 w-3.5" />
-              Reset
-            </Button>
-            <Button size="sm" className="h-9">
-              <Filter className="mr-1 h-3.5 w-3.5" />
-              Apply
-            </Button>
           </div>
         </div>
       </CardContent>

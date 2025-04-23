@@ -12,12 +12,11 @@ import {
 } from "@/components/ui/pagination"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { ChevronUp, ChevronDown, Trophy, Plus } from "lucide-react"
-import { RacerDetailSheet } from "@/components/racers/racer-detail-sheet"
+import { Trophy, Plus } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RacerAddDialog } from "@/components/racers/racer-add-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { RacerDetailDialog } from "@/components/racers/racer-detail-dialog"
 
 // Update the Racer data type to include coDriver field
 export type Racer = {
@@ -169,6 +168,7 @@ export function RacersList() {
   const [sortField, setSortField] = useState<SortField>("name")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const [selectedRacer, setSelectedRacer] = useState<Racer | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const [racers, setRacers] = useState<Racer[]>(initialRacers)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const { toast } = useToast()
@@ -198,13 +198,9 @@ export function RacersList() {
 
   const paginatedRacers = sortedRacers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-  const renderSortIcon = (field: SortField) => {
-    if (sortField !== field) return null
-    return sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
-  }
-
   const handleRowClick = (racer: Racer) => {
     setSelectedRacer(racer)
+    setDialogOpen(true)
   }
 
   const handleRacerUpdate = (updatedRacer: Racer) => {
@@ -228,100 +224,28 @@ export function RacersList() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Racer Profiles</h2>
-        <Button onClick={() => setAddDialogOpen(true)} className="h-10">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Racer
-        </Button>
-      </div>
-
-      <Card className="overflow-hidden shadow-md">
+      <div className="bg-white rounded-lg shadow-sm border">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50">
+              <TableRow className="bg-muted">
                 <TableHead className="w-12 py-4"></TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("name")}
-                  >
-                    Name {renderSortIcon("name")}
-                  </Button>
-                </TableHead>
-                <TableHead className="w-16 py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("number")}
-                  >
-                    # {renderSortIcon("number")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("team")}
-                  >
-                    Team {renderSortIcon("team")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">Co-Driver</TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("category")}
-                  >
-                    Category {renderSortIcon("category")}
-                  </Button>
-                </TableHead>
-                <TableHead className="w-16 py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("age")}
-                  >
-                    Age {renderSortIcon("age")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("country")}
-                  >
-                    Country {renderSortIcon("country")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("totalRaces")}
-                  >
-                    Races {renderSortIcon("totalRaces")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("wins")}
-                  >
-                    Wins {renderSortIcon("wins")}
-                  </Button>
-                </TableHead>
+                <TableHead className="py-4 text-base">Name</TableHead>
+                <TableHead className="w-16 py-4 text-base">#</TableHead>
+                <TableHead className="py-4 text-base">Team</TableHead>
+                <TableHead className="py-4 text-base">Co-Driver</TableHead>
+                <TableHead className="py-4 text-base">Category</TableHead>
+                <TableHead className="w-16 py-4 text-base">Age</TableHead>
+                <TableHead className="py-4 text-base">Country</TableHead>
+                <TableHead className="py-4 text-base">Races</TableHead>
+                <TableHead className="py-4 text-base">Wins</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedRacers.map((racer) => (
                 <TableRow
                   key={racer.id}
-                  className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="hover:bg-muted/50 cursor-pointer transition-colors"
                   onClick={() => handleRowClick(racer)}
                 >
                   <TableCell className="py-4">
@@ -335,19 +259,19 @@ export function RacersList() {
                       </AvatarFallback>
                     </Avatar>
                   </TableCell>
-                  <TableCell className="font-medium py-4">{racer.name}</TableCell>
-                  <TableCell className="py-4">{racer.number}</TableCell>
-                  <TableCell className="py-4">{racer.team}</TableCell>
-                  <TableCell className="py-4">{racer.coDriver || "-"}</TableCell>
+                  <TableCell className="font-medium py-4 text-base">{racer.name}</TableCell>
+                  <TableCell className="py-4 text-base">{racer.number}</TableCell>
+                  <TableCell className="py-4 text-base">{racer.team}</TableCell>
+                  <TableCell className="py-4 text-base">{racer.coDriver || "-"}</TableCell>
                   <TableCell className="py-4">
-                    <Badge variant={racer.category === "Pro" ? "default" : "secondary"} className="px-3 py-1 text-sm">
+                    <Badge variant={racer.category === "Pro" ? "default" : "secondary"} className="px-3 py-1 text-base">
                       {racer.category}
                     </Badge>
                   </TableCell>
-                  <TableCell className="py-4">{racer.age}</TableCell>
-                  <TableCell className="py-4">{racer.country}</TableCell>
-                  <TableCell className="py-4">{racer.totalRaces}</TableCell>
-                  <TableCell className="py-4">
+                  <TableCell className="py-4 text-base">{racer.age}</TableCell>
+                  <TableCell className="py-4 text-base">{racer.country}</TableCell>
+                  <TableCell className="py-4 text-base">{racer.totalRaces}</TableCell>
+                  <TableCell className="py-4 text-base">
                     <div className="flex items-center">
                       {racer.wins > 0 && <Trophy className="h-4 w-4 text-yellow-500 mr-1" />}
                       {racer.wins}
@@ -401,9 +325,23 @@ export function RacersList() {
             </PaginationContent>
           </Pagination>
         </div>
-      </Card>
+      </div>
 
-      <RacerDetailSheet racer={selectedRacer} onClose={() => setSelectedRacer(null)} onUpdate={handleRacerUpdate} />
+      {/* Floating Action Button */}
+      <Button
+        onClick={() => setAddDialogOpen(true)}
+        className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
+        size="icon"
+      >
+        <Plus className="h-8 w-8" />
+      </Button>
+
+      <RacerDetailDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        racer={selectedRacer}
+        onUpdate={handleRacerUpdate}
+      />
 
       <RacerAddDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} onAdd={handleAddRacer} />
     </>

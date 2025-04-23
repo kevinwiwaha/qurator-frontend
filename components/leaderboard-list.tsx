@@ -11,12 +11,10 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import { ChevronUp, ChevronDown, Medal, Flag, MapPin } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Medal, Flag, MapPin } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
-// Track type
+// Using the same types as before
 export type Track = {
   id: string
   name: string
@@ -25,14 +23,12 @@ export type Track = {
   difficulty: "Easy" | "Moderate" | "Hard" | "Expert"
 }
 
-// Penalty type
 export type Penalty = {
   id: number
   seconds: number
   description: string
 }
 
-// Leaderboard entry type
 export type LeaderboardEntry = {
   id: number
   position: number
@@ -88,7 +84,7 @@ const tracks: Track[] = [
   },
 ]
 
-// Sample leaderboard data
+// Sample leaderboard data (using the same data as before)
 const initialLeaderboard: LeaderboardEntry[] = [
   {
     id: 1,
@@ -264,64 +260,14 @@ const initialLeaderboard: LeaderboardEntry[] = [
   },
 ]
 
-// Class-based leaderboard
-const getClassLeaderboard = (entries: LeaderboardEntry[], category: string) => {
-  if (category === "all") return entries
-
-  const filteredEntries = entries.filter((entry) => entry.category === category)
-
-  // Recalculate positions within the category
-  return filteredEntries.map((entry, index) => ({
-    ...entry,
-    position: index + 1,
-  }))
-}
-
-// Track and class-based leaderboard
-const getTrackClassLeaderboard = (entries: LeaderboardEntry[], trackId: string, category: string) => {
-  let filteredEntries = entries
-
-  // Filter by category if specified
-  if (category !== "all") {
-    filteredEntries = filteredEntries.filter((entry) => entry.category === category)
-  }
-
-  // If a specific track is selected, sort by position in that track
-  if (trackId !== "all") {
-    filteredEntries = filteredEntries
-      .filter((entry) => entry.results.some((result) => result.trackId === trackId))
-      .sort((a, b) => {
-        const aResult = a.results.find((r) => r.trackId === trackId)
-        const bResult = b.results.find((r) => r.trackId === trackId)
-
-        if (!aResult) return 1
-        if (!bResult) return -1
-
-        return aResult.position - bResult.position
-      })
-  }
-
-  // Recalculate positions
-  return filteredEntries.map((entry, index) => ({
-    ...entry,
-    position: index + 1,
-  }))
-}
-
-type SortField = "position" | "racerNumber" | "racerName" | "team" | "category" | "totalPoints"
-type SortDirection = "asc" | "desc"
-
 export function LeaderboardList() {
   const [currentPage, setCurrentPage] = useState(1)
-  const [sortField, setSortField] = useState<SortField>("position")
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(initialLeaderboard)
-  const [viewType, setViewType] = useState<"overall" | "class" | "track">("overall")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [selectedTrack, setSelectedTrack] = useState<string>("all")
   const [displayedLeaderboard, setDisplayedLeaderboard] = useState<LeaderboardEntry[]>(initialLeaderboard)
 
-  const itemsPerPage = 5
+  const itemsPerPage = 8 // Increased for tablet view
 
   // Update displayed leaderboard when filters change
   useEffect(() => {
@@ -358,44 +304,18 @@ export function LeaderboardList() {
   }, [selectedCategory, selectedTrack])
 
   const totalPages = Math.ceil(displayedLeaderboard.length / itemsPerPage)
-
-  const handleSort = (field: SortField) => {
-    if (field === sortField) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-    } else {
-      setSortField(field)
-      setSortDirection("asc")
-    }
-  }
-
-  const sortedLeaderboard = [...displayedLeaderboard].sort((a, b) => {
-    const aValue = a[sortField]
-    const bValue = b[sortField]
-
-    if (sortDirection === "asc") {
-      return aValue > bValue ? 1 : -1
-    } else {
-      return aValue < bValue ? 1 : -1
-    }
-  })
-
-  const paginatedLeaderboard = sortedLeaderboard.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-
-  const renderSortIcon = (field: SortField) => {
-    if (sortField !== field) return null
-    return sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
-  }
+  const paginatedLeaderboard = displayedLeaderboard.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const getMedalColor = (position: number) => {
     switch (position) {
       case 1:
-        return "text-yellow-500"
+        return "text-yellow-400"
       case 2:
-        return "text-gray-400"
-      case 3:
-        return "text-amber-700"
-      default:
         return "text-gray-300"
+      case 3:
+        return "text-amber-600"
+      default:
+        return "text-gray-200"
     }
   }
 
@@ -406,193 +326,126 @@ export function LeaderboardList() {
   }
 
   return (
-    <>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-xl font-semibold">
-            {selectedTrack === "all" ? "Overall Leaderboard" : `${getTrackName(selectedTrack)} Leaderboard`}
-            {selectedCategory !== "all" ? ` - ${selectedCategory}` : ""}
-          </h2>
-          <p className="text-muted-foreground">
-            {selectedTrack === "all"
-              ? "Rankings based on total points across all tracks"
-              : `Rankings for ${getTrackName(selectedTrack)}`}
-            {selectedCategory !== "all" ? ` in ${selectedCategory} category` : ""}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
-            Export Results
-          </Button>
-        </div>
-      </div>
-
-      <Card className="overflow-hidden shadow-md">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="w-16 py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("position")}
-                  >
-                    Pos {renderSortIcon("position")}
-                  </Button>
-                </TableHead>
-                <TableHead className="w-16 py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("racerNumber")}
-                  >
-                    # {renderSortIcon("racerNumber")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("racerName")}
-                  >
-                    Racer {renderSortIcon("racerName")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">Co-Driver</TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("team")}
-                  >
-                    Team {renderSortIcon("team")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold"
-                    onClick={() => handleSort("category")}
-                  >
-                    Category {renderSortIcon("category")}
-                  </Button>
-                </TableHead>
-                <TableHead className="w-20 text-right py-4">
-                  <Button
-                    variant="ghost"
-                    className="flex items-center p-0 h-auto font-semibold ml-auto"
-                    onClick={() => handleSort("totalPoints")}
-                  >
-                    Points {renderSortIcon("totalPoints")}
-                  </Button>
-                </TableHead>
-                <TableHead className="py-4">Best Result</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedLeaderboard.length > 0 ? (
-                paginatedLeaderboard.map((entry) => (
-                  <TableRow key={entry.id} className="hover:bg-muted/50 cursor-pointer transition-colors">
-                    <TableCell className="font-medium py-5">
+    <div className="bg-white rounded-lg shadow-sm border">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted">
+              <TableHead className="w-16 py-4 text-base">Pos</TableHead>
+              <TableHead className="w-16 py-4 text-base">#</TableHead>
+              <TableHead className="py-4 text-base">Racer</TableHead>
+              <TableHead className="py-4 text-base">Team</TableHead>
+              <TableHead className="py-4 text-base">Category</TableHead>
+              <TableHead className="w-20 text-right py-4 text-base">Points</TableHead>
+              <TableHead className="py-4 text-base">Best Result</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedLeaderboard.length > 0 ? (
+              paginatedLeaderboard.map((entry) => (
+                <TableRow key={entry.id} className="hover:bg-muted/50 cursor-pointer transition-colors">
+                  <TableCell className="font-medium py-4 text-base">
+                    <div className="flex items-center">
+                      {entry.position <= 3 && <Medal className={`mr-1 h-5 w-5 ${getMedalColor(entry.position)}`} />}
+                      {entry.position}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-4 text-base">{entry.racerNumber}</TableCell>
+                  <TableCell className="font-medium py-4 text-base">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-primary/10 text-primary text-base">
+                          {entry.racerName
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div>{entry.racerName}</div>
+                        {entry.coDriver && (
+                          <div className="text-sm text-muted-foreground">Co-Driver: {entry.coDriver}</div>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-4 text-base">{entry.team}</TableCell>
+                  <TableCell className="py-4">
+                    <Badge variant={entry.category === "Pro" ? "default" : "secondary"} className="px-3 py-1 text-base">
+                      {entry.category}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold py-4 text-base">{entry.totalPoints}</TableCell>
+                  <TableCell className="py-4 text-base">
+                    <div className="flex flex-col">
                       <div className="flex items-center">
-                        {entry.position <= 3 && <Medal className={`mr-1 h-5 w-5 ${getMedalColor(entry.position)}`} />}
-                        {entry.position}
+                        <Flag className="h-5 w-5 mr-1 text-primary" />
+                        <span className="font-medium">P{entry.bestResult.position}</span>
                       </div>
-                    </TableCell>
-                    <TableCell className="py-5">{entry.racerNumber}</TableCell>
-                    <TableCell className="font-medium py-5">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            {entry.racerName
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        {entry.racerName}
+                      <div className="flex items-center text-sm text-muted-foreground mt-1">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {getTrackName(entry.bestResult.trackId)}
                       </div>
-                    </TableCell>
-                    <TableCell className="py-5">{entry.coDriver || "-"}</TableCell>
-                    <TableCell className="py-5">{entry.team}</TableCell>
-                    <TableCell className="py-5">
-                      <Badge variant={entry.category === "Pro" ? "default" : "secondary"} className="px-3 py-1 text-sm">
-                        {entry.category}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold py-5">{entry.totalPoints}</TableCell>
-                    <TableCell className="py-5">
-                      <div className="flex flex-col">
-                        <div className="flex items-center">
-                          <Flag className="h-4 w-4 mr-1 text-primary" />
-                          <span className="font-medium">P{entry.bestResult.position}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground mt-1">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          {getTrackName(entry.bestResult.trackId)}
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center">
-                    No results found
+                    </div>
                   </TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center text-base">
+                  No results found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {paginatedLeaderboard.length > 0 && totalPages > 1 && (
+        <div className="p-4 border-t">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (currentPage > 1) setCurrentPage(currentPage - 1)
+                  }}
+                  className={`h-12 w-12 ${currentPage === 1 ? "pointer-events-none opacity-50" : ""}`}
+                />
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <PaginationItem key={index}>
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setCurrentPage(index + 1)
+                    }}
+                    isActive={currentPage === index + 1}
+                    className="h-12 w-12 text-base"
+                  >
+                    {index + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+                  }}
+                  className={`h-12 w-12 ${currentPage === totalPages ? "pointer-events-none opacity-50" : ""}`}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
-
-        {paginatedLeaderboard.length > 0 && (
-          <div className="p-4 border-t">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      if (currentPage > 1) setCurrentPage(currentPage - 1)
-                    }}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-
-                {Array.from({ length: totalPages }).map((_, index) => (
-                  <PaginationItem key={index}>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setCurrentPage(index + 1)
-                      }}
-                      isActive={currentPage === index + 1}
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      if (currentPage < totalPages) setCurrentPage(currentPage + 1)
-                    }}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
-      </Card>
-    </>
+      )}
+    </div>
   )
 }
