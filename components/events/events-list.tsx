@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Pagination,
@@ -11,9 +11,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Calendar, MapPin, Users, Plus } from "lucide-react"
+import { Calendar, MapPin, Users } from "lucide-react"
 import { EventDetailDialog } from "@/components/events/event-detail-dialog"
+import { Card } from "@/components/ui/card"
 
 // Track type
 export type Track = {
@@ -233,21 +233,36 @@ const initialEvents: Event[] = [
   },
 ]
 
-type SortField = "name" | "date" | "location" | "status" | "participants"
-type SortDirection = "asc" | "desc"
+interface EventsListProps {
+  searchTerm?: string
+  statusFilter?: string
+  addEventDialogOpen?: boolean
+  setAddEventDialogOpen?: (open: boolean) => void
+}
 
-export function EventsList() {
+export function EventsList({
+  searchTerm = "",
+  statusFilter = "all",
+  addEventDialogOpen = false,
+  setAddEventDialogOpen = () => {},
+}: EventsListProps) {
   const [currentPage, setCurrentPage] = useState(1)
-  const [sortField, setSortField] = useState<SortField>("date")
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const [sortField, setSortField] = useState<string>("date")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [events, setEvents] = useState<Event[]>(initialEvents)
 
   const itemsPerPage = 5
-  const totalPages = Math.ceil(events.length / itemsPerPage)
 
-  const handleSort = (field: SortField) => {
+  // Handle external dialog state
+  useEffect(() => {
+    if (addEventDialogOpen) {
+      handleAddEvent()
+    }
+  }, [addEventDialogOpen])
+
+  const handleSort = (field: string) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc")
     } else {
@@ -256,18 +271,40 @@ export function EventsList() {
     }
   }
 
-  const sortedEvents = [...events].sort((a, b) => {
-    const aValue = a[sortField]
-    const bValue = b[sortField]
+  // Filter and sort events
+  const filteredAndSortedEvents = [...events]
+    .filter((event) => {
+      // Apply search filter
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase()
+        return (
+          event.name.toLowerCase().includes(term) ||
+          event.location.toLowerCase().includes(term) ||
+          event.organizer?.toLowerCase().includes(term)
+        )
+      }
+      return true
+    })
+    .filter((event) => {
+      // Apply status filter
+      if (statusFilter !== "all") {
+        return event.status.toLowerCase().replace(" ", "-") === statusFilter.toLowerCase()
+      }
+      return true
+    })
+    .sort((a, b) => {
+      const aValue = a[sortField as keyof typeof a]
+      const bValue = b[sortField as keyof typeof a]
 
-    if (sortDirection === "asc") {
-      return aValue > bValue ? 1 : -1
-    } else {
-      return aValue < bValue ? 1 : -1
-    }
-  })
+      if (sortDirection === "asc") {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
 
-  const paginatedEvents = sortedEvents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const totalPages = Math.ceil(filteredAndSortedEvents.length / itemsPerPage)
+  const paginatedEvents = filteredAndSortedEvents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const handleRowClick = (event: Event) => {
     setSelectedEvent(event)
@@ -296,6 +333,10 @@ export function EventsList() {
     setEvents([...events, newEvent])
     setSelectedEvent(newEvent)
     setDialogOpen(true)
+
+    if (setAddEventDialogOpen) {
+      setAddEventDialogOpen(false)
+    }
   }
 
   const getStatusBadgeVariant = (status: Event["status"]) => {
@@ -315,117 +356,147 @@ export function EventsList() {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm border">
+      <Card className="overflow-hidden shadow-md mb-4">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted">
-                <TableHead className="py-4 text-base">Event Name</TableHead>
-                <TableHead className="py-4 text-base">Date</TableHead>
-                <TableHead className="py-4 text-base">Location</TableHead>
-                <TableHead className="py-4 text-base">Status</TableHead>
-                <TableHead className="py-4 text-base">Participants</TableHead>
+                <TableHead
+                  className="py-4 text-base cursor-pointer hover:text-primary"
+                  onClick={() => handleSort("name")}
+                >
+                  Event Name {sortField === "name" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead
+                  className="py-4 text-base cursor-pointer hover:text-primary"
+                  onClick={() => handleSort("date")}
+                >
+                  Date {sortField === "date" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead
+                  className="py-4 text-base cursor-pointer hover:text-primary"
+                  onClick={() => handleSort("location")}
+                >
+                  Location {sortField === "location" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead
+                  className="py-4 text-base cursor-pointer hover:text-primary"
+                  onClick={() => handleSort("status")}
+                >
+                  Status {sortField === "status" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+                <TableHead
+                  className="py-4 text-base cursor-pointer hover:text-primary"
+                  onClick={() => handleSort("participants")}
+                >
+                  Participants {sortField === "participants" && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
                 <TableHead className="py-4 text-base">Tracks</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedEvents.map((event) => (
-                <TableRow
-                  key={event.id}
-                  className="hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => handleRowClick(event)}
-                >
-                  <TableCell className="font-medium py-4 text-base">{event.name}</TableCell>
-                  <TableCell className="py-4 text-base">
-                    <div className="flex items-center">
-                      <Calendar className="h-5 w-5 mr-2 text-muted-foreground" />
-                      {new Date(event.date).toLocaleDateString()}
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-4 text-base">
-                    <div className="flex items-center">
-                      <MapPin className="h-5 w-5 mr-2 text-muted-foreground" />
-                      {event.location}
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-4">
-                    <Badge variant={getStatusBadgeVariant(event.status)} className="px-3 py-1 text-base">
-                      {event.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="py-4 text-base">
-                    <div className="flex items-center">
-                      <Users className="h-5 w-5 mr-2 text-muted-foreground" />
-                      {event.racers.length} / {event.participants}
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {event.tracks.length > 0 ? (
-                        event.tracks.map((track) => (
-                          <Badge key={track.id} variant="outline" className="px-2 py-1 text-sm">
-                            {track.name}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-muted-foreground text-sm">No tracks</span>
-                      )}
-                    </div>
+              {paginatedEvents.length > 0 ? (
+                paginatedEvents.map((event) => (
+                  <TableRow
+                    key={event.id}
+                    className="hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => handleRowClick(event)}
+                  >
+                    <TableCell className="font-medium py-4 text-base">{event.name}</TableCell>
+                    <TableCell className="py-4 text-base">
+                      <div className="flex items-center">
+                        <Calendar className="h-5 w-5 mr-2 text-muted-foreground" />
+                        {new Date(event.date).toLocaleDateString()}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 text-base">
+                      <div className="flex items-center">
+                        <MapPin className="h-5 w-5 mr-2 text-muted-foreground" />
+                        {event.location}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <Badge variant={getStatusBadgeVariant(event.status)} className="px-3 py-1 text-base">
+                        {event.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="py-4 text-base">
+                      <div className="flex items-center">
+                        <Users className="h-5 w-5 mr-2 text-muted-foreground" />
+                        {event.racers.length} / {event.participants}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {event.tracks.length > 0 ? (
+                          event.tracks.map((track) => (
+                            <Badge key={track.id} variant="outline" className="px-2 py-1 text-sm">
+                              {track.name}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground text-sm">No tracks</span>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    No events found matching your criteria
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
 
-        <div className="p-4 border-t">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (currentPage > 1) setCurrentPage(currentPage - 1)
-                  }}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                />
-              </PaginationItem>
-
-              {Array.from({ length: totalPages }).map((_, index) => (
-                <PaginationItem key={index}>
-                  <PaginationLink
+        {totalPages > 1 && (
+          <div className="p-4 border-t">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
                     href="#"
                     onClick={(e) => {
                       e.preventDefault()
-                      setCurrentPage(index + 1)
+                      if (currentPage > 1) setCurrentPage(currentPage - 1)
                     }}
-                    isActive={currentPage === index + 1}
-                  >
-                    {index + 1}
-                  </PaginationLink>
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
                 </PaginationItem>
-              ))}
 
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
-                  }}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      </div>
+                {Array.from({ length: totalPages }).map((_, index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setCurrentPage(index + 1)
+                      }}
+                      isActive={currentPage === index + 1}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
 
-      {/* Floating Action Button */}
-      <Button onClick={handleAddEvent} className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg" size="icon">
-        <Plus className="h-8 w-8" />
-      </Button>
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+                    }}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+      </Card>
 
       <EventDetailDialog
         open={dialogOpen}

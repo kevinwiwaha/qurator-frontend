@@ -5,11 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Timer, AlertTriangle, Plus, Clock, Users, ChevronRight, Search } from "lucide-react"
+import { Timer, AlertTriangle, Plus, Clock, Users, ChevronRight } from "lucide-react"
 import TimingEntryDialog from "@/components/timing/timing-entry-dialog"
 import { useToast } from "@/hooks/use-toast"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
 
 // Penalty type for timing
 type TimingPenalty = {
@@ -121,13 +119,6 @@ const mockRacers: TimingRacer[] = [
   },
 ]
 
-// Get unique categories from racers
-const getUniqueCategories = (racers: TimingRacer[]): string[] => {
-  const categories = new Set<string>()
-  racers.forEach((racer) => categories.add(racer.category))
-  return Array.from(categories)
-}
-
 // Format milliseconds to a readable time string
 const formatTime = (time: number | null): string => {
   if (time === null) return "--:--:--"
@@ -140,30 +131,53 @@ const formatTime = (time: number | null): string => {
   return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
 }
 
-export function TimingConsole() {
+interface TimingConsoleProps {
+  searchTerm?: string
+  trackFilter?: string
+  categoryFilter?: string
+  addTimeDialogOpen?: boolean
+  setAddTimeDialogOpen?: (open: boolean) => void
+}
+
+export function TimingConsole({
+  searchTerm = "",
+  trackFilter = "all",
+  categoryFilter = "all",
+  addTimeDialogOpen = false,
+  setAddTimeDialogOpen = () => {},
+}: TimingConsoleProps) {
   const [selectedTrack, setSelectedTrack] = useState<string>("track1")
   const [racers, setRacers] = useState<TimingRacer[]>(mockRacers)
   const [filteredRacers, setFilteredRacers] = useState<TimingRacer[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editRacer, setEditRacer] = useState<TimingRacer | null>(null)
   const [dialogMode, setDialogMode] = useState<"add" | "edit">("add")
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [searchTerm, setSearchTerm] = useState<string>("")
   const { toast } = useToast()
 
-  // Get unique categories
-  const categories = ["all", ...getUniqueCategories(racers)]
+  // Update selected track when trackFilter changes
+  useEffect(() => {
+    if (trackFilter !== "all") {
+      setSelectedTrack(trackFilter)
+    }
+  }, [trackFilter])
 
   // Filter racers by selected track, category, and search term
   useEffect(() => {
-    let filtered = racers.filter((racer) => racer.trackId === selectedTrack)
+    let filtered = racers
 
-    // Apply category filter if not "all"
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((racer) => racer.category === selectedCategory)
+    // Apply track filter
+    if (trackFilter !== "all") {
+      filtered = filtered.filter((racer) => racer.trackId === trackFilter)
+    } else if (selectedTrack) {
+      filtered = filtered.filter((racer) => racer.trackId === selectedTrack)
     }
 
-    // Apply search filter if there's a search term
+    // Apply category filter
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((racer) => racer.category.toLowerCase() === categoryFilter)
+    }
+
+    // Apply search filter
     if (searchTerm.trim() !== "") {
       const term = searchTerm.toLowerCase()
       filtered = filtered.filter(
@@ -175,7 +189,7 @@ export function TimingConsole() {
     }
 
     setFilteredRacers(filtered)
-  }, [selectedTrack, racers, selectedCategory, searchTerm])
+  }, [selectedTrack, racers, categoryFilter, searchTerm, trackFilter])
 
   // Handle adding a new time record
   const handleAddTimeRecord = (newRacer: TimingRacer) => {
@@ -215,6 +229,9 @@ export function TimingConsole() {
     setDialogMode("add")
     setEditRacer(null)
     setDialogOpen(true)
+    if (setAddTimeDialogOpen) {
+      setAddTimeDialogOpen(false)
+    }
   }
 
   // Open dialog to edit a time record
@@ -263,55 +280,15 @@ export function TimingConsole() {
     }
   }
 
+  // Use the external dialog state if provided
+  useEffect(() => {
+    if (addTimeDialogOpen) {
+      openAddDialog()
+    }
+  }, [addTimeDialogOpen])
+
   return (
-    <div className="space-y-6 relative pb-20">
-      {/* Track selection and filters */}
-      <Card className="mb-4 shadow-sm">
-        <CardContent className="p-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Select value={selectedTrack} onValueChange={setSelectedTrack}>
-                <SelectTrigger className="h-9 text-sm w-[140px]">
-                  <SelectValue placeholder="Select track" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockTracks.map((track) => (
-                    <SelectItem key={track.id} value={track.id}>
-                      {track.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="h-9 text-sm w-[140px]">
-                  <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category === "all" ? "All Categories" : category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-              <Input
-                placeholder="Search by name, team, or number"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 h-9 text-sm w-full"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
+    <div className="p-4 space-y-6 relative pb-20">
       {/* Timing data display */}
       <Card>
         <CardHeader className="pb-2">
@@ -319,13 +296,13 @@ export function TimingConsole() {
         </CardHeader>
 
         <CardContent>
-          <ScrollArea className="h-[calc(100vh-350px)]">
+          <ScrollArea className="h-[calc(100vh-280px)]">
             {filteredRacers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Timer className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium">No timing data found</h3>
                 <p className="text-muted-foreground mt-2 max-w-md">
-                  {searchTerm || selectedCategory !== "all"
+                  {searchTerm || categoryFilter !== "all" || trackFilter !== "all"
                     ? "Try adjusting your filters to see more results"
                     : "Add time records for racers on this track to see them here"}
                 </p>

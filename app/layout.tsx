@@ -3,6 +3,7 @@ import "@/app/globals.css"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { AlertProvider } from "@/context/alert-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,10 +22,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light">
-          <div className="min-h-screen bg-gray-100">
-            {children}
-            <Toaster />
-          </div>
+          <AlertProvider>
+            <div className="min-h-screen bg-gray-100">
+              {children}
+              <Toaster />
+            </div>
+          </AlertProvider>
         </ThemeProvider>
       </body>
     </html>

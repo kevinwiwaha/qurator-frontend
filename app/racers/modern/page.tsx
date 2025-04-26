@@ -1,15 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { AppShell } from "@/components/app-shell"
-import { RacersList } from "@/components/racers/racers-list"
+import { ModernRacersList, type ModernRacersListRef } from "@/components/racers/modern-racers-list"
 import { SlimFilterBar } from "@/components/slim-filter-bar"
 
-export default function RacersPage() {
+export default function ModernRacersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [addRacerDialogOpen, setAddRacerDialogOpen] = useState(false)
+  const [countryFilter, setCountryFilter] = useState("all")
+  const racersListRef = useRef<ModernRacersListRef>({ onAddRacer: () => {} })
 
   const handleSearch = (value: string) => {
     setSearchTerm(value)
@@ -18,13 +18,13 @@ export default function RacersPage() {
   const handleFilterChange = (filterId: string, value: string) => {
     if (filterId === "category") {
       setCategoryFilter(value)
-    } else if (filterId === "status") {
-      setStatusFilter(value)
+    } else if (filterId === "country") {
+      setCountryFilter(value)
     }
   }
 
   const handleAddRacer = () => {
-    setAddRacerDialogOpen(true)
+    racersListRef.current.onAddRacer()
   }
 
   return (
@@ -39,16 +39,17 @@ export default function RacersPage() {
               options: [
                 { value: "pro", label: "Pro" },
                 { value: "amateur", label: "Amateur" },
-                { value: "elite", label: "Elite" },
               ],
             },
             {
-              id: "status",
-              label: "Status",
+              id: "country",
+              label: "Country",
               options: [
-                { value: "active", label: "Active" },
-                { value: "inactive", label: "Inactive" },
-                { value: "pending", label: "Pending" },
+                { value: "usa", label: "USA" },
+                { value: "canada", label: "Canada" },
+                { value: "uk", label: "UK" },
+                { value: "australia", label: "Australia" },
+                { value: "germany", label: "Germany" },
               ],
             },
           ]}
@@ -61,12 +62,12 @@ export default function RacersPage() {
         />
 
         <div className="flex-1 p-4 overflow-auto">
-          <RacersList
+          <ModernRacersList
             searchTerm={searchTerm}
             categoryFilter={categoryFilter}
-            statusFilter={statusFilter}
-            addRacerDialogOpen={addRacerDialogOpen}
-            setAddRacerDialogOpen={setAddRacerDialogOpen}
+            countryFilter={countryFilter}
+            onAddRacer={(callback) => (racersListRef.current.onAddRacer = callback)}
+            ref={racersListRef}
           />
         </div>
       </div>

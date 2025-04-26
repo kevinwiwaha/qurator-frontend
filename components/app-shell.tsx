@@ -16,28 +16,27 @@ export function AppShell({ children, activePage = "leaderboard" }: AppShellProps
   const isMobile = useMobile()
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
-      {/* Profile avatar in top right corner */}
-      <div className="fixed top-4 right-4 z-50">
-        <Link href="/settings">
-          <Avatar className="h-10 w-10 bg-white border-2 border-primary text-primary cursor-pointer hover:ring-2 hover:ring-primary transition-all shadow-md">
-            <AvatarFallback className="font-medium text-sm">JD</AvatarFallback>
-          </Avatar>
-        </Link>
-      </div>
-
-      {/* Top navigation bar */}
-      <div className="fixed top-4 left-0 right-0 z-40 flex justify-center">
-        <div className="bg-primary rounded-full px-4 py-3 flex items-center justify-between w-full max-w-md mx-4 shadow-lg">
+    <div className="flex flex-col h-screen bg-background">
+      {/* Top navigation bar - not fixed anymore */}
+      <div className="bg-primary px-4 py-3 flex items-center justify-between w-full shadow-md">
+        <div className="w-10"></div> {/* Spacer to balance the avatar */}
+        <div className="flex items-center justify-center">
           <NavItem href="/" icon={Trophy} label="Leaderboard" active={activePage === "leaderboard"} />
           <NavItem href="/racers" icon={Users} label="Racers" active={activePage === "racers"} />
           <NavItem href="/events" icon={Flag} label="Events" active={activePage === "events"} />
           <NavItem href="/timing" icon={Clock} label="Timing" active={activePage === "timing"} />
         </div>
+        <div className="flex items-center">
+          <Link href="/settings">
+            <Avatar className="h-10 w-10 bg-white border-2 border-primary text-primary cursor-pointer hover:ring-2 hover:ring-primary transition-all shadow-md">
+              <AvatarFallback className="font-medium text-sm">JD</AvatarFallback>
+            </Avatar>
+          </Link>
+        </div>
       </div>
 
       {/* Page content */}
-      <main className="flex-1 overflow-auto bg-background pt-20">{children}</main>
+      <div className="flex-1 overflow-auto bg-background w-full">{children}</div>
     </div>
   )
 }
@@ -54,7 +53,7 @@ function NavItem({ href, icon: Icon, label, active }: NavItemProps) {
     <Link href={href}>
       <div
         className={cn(
-          "flex items-center justify-center transition-all duration-200 ease-in-out",
+          "flex items-center justify-center transition-all duration-200 ease-in-out mx-4",
           active ? "bg-white text-primary rounded-full px-4 py-2" : "text-white px-2 py-2",
         )}
       >

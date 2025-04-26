@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Medal, Flag, MapPin } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Card } from "@/components/ui/card"
 
 // Using the same types as before
 export type Track = {
@@ -260,11 +261,19 @@ const initialLeaderboard: LeaderboardEntry[] = [
   },
 ]
 
-export function LeaderboardList() {
+interface LeaderboardListProps {
+  searchTerm?: string
+  categoryFilter?: string
+  trackFilter?: string
+}
+
+export function LeaderboardList({
+  searchTerm = "",
+  categoryFilter = "all",
+  trackFilter = "all",
+}: LeaderboardListProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(initialLeaderboard)
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [selectedTrack, setSelectedTrack] = useState<string>("all")
   const [displayedLeaderboard, setDisplayedLeaderboard] = useState<LeaderboardEntry[]>(initialLeaderboard)
 
   const itemsPerPage = 8 // Increased for tablet view
@@ -273,19 +282,30 @@ export function LeaderboardList() {
   useEffect(() => {
     let filtered = [...initialLeaderboard]
 
+    // Apply search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase()
+      filtered = filtered.filter(
+        (entry) =>
+          entry.racerName.toLowerCase().includes(term) ||
+          entry.team.toLowerCase().includes(term) ||
+          entry.racerNumber.toString().includes(term),
+      )
+    }
+
     // Filter by category if specified
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((entry) => entry.category === selectedCategory)
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((entry) => entry.category.toLowerCase() === categoryFilter.toLowerCase())
     }
 
     // Filter by track if specified
-    if (selectedTrack !== "all") {
-      filtered = filtered.filter((entry) => entry.results.some((result) => result.trackId === selectedTrack))
+    if (trackFilter !== "all") {
+      filtered = filtered.filter((entry) => entry.results.some((result) => result.trackId === trackFilter))
 
       // If filtering by track, sort by position in that track
       filtered.sort((a, b) => {
-        const aResult = a.results.find((r) => r.trackId === selectedTrack)
-        const bResult = b.results.find((r) => r.trackId === selectedTrack)
+        const aResult = a.results.find((r) => r.trackId === trackFilter)
+        const bResult = b.results.find((r) => r.trackId === trackFilter)
 
         if (!aResult) return 1
         if (!bResult) return -1
@@ -301,7 +321,7 @@ export function LeaderboardList() {
     }
 
     setDisplayedLeaderboard(filtered)
-  }, [selectedCategory, selectedTrack])
+  }, [searchTerm, categoryFilter, trackFilter])
 
   const totalPages = Math.ceil(displayedLeaderboard.length / itemsPerPage)
   const paginatedLeaderboard = displayedLeaderboard.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -326,7 +346,7 @@ export function LeaderboardList() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
+    <Card className="overflow-hidden shadow-md mb-4">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -393,7 +413,7 @@ export function LeaderboardList() {
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center text-base">
-                  No results found
+                  No results found matching your criteria
                 </TableCell>
               </TableRow>
             )}
@@ -446,6 +466,6 @@ export function LeaderboardList() {
           </Pagination>
         </div>
       )}
-    </div>
+    </Card>
   )
 }
